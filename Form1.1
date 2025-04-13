@@ -1,0 +1,228 @@
+using System.Windows.Forms;
+using  Gestión_de_Negocios_de_Comida_Rápida;
+
+namespace Gestión_de_Negocios_de_Comida_Rápida
+{
+    public partial class Form1 : Form
+    {
+        public static List<Producto> listaProductos = new List<Producto>();
+
+        private int contadorId = 1;
+        decimal total = 0;
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void panel2_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+        private void menu_Click(object sender, EventArgs e)
+        {
+            panelMenu.Visible = true;
+        }
+        private void ActualizarGrid()
+        {
+            dataGridViewMenu.DataSource = null;
+            dataGridViewMenu.AutoGenerateColumns = true;
+            dataGridViewMenu.DataSource = DatosCompartidos.Menu;
+        }
+
+        private void buttonAgregarProducto_Click(object sender, EventArgs e)
+        {
+
+            string nombre = textBoxProducto.Text;
+            string categoria = textBoxCategoria.Text;
+            string precio = textBoxPrecio.Text;
+
+            if (string.IsNullOrEmpty(nombre) || string.IsNullOrEmpty(categoria) || string.IsNullOrEmpty(precio))
+            {
+                MessageBox.Show("Complete todos los campos.", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            if (!decimal.TryParse(precio, out decimal precioDecimal))
+            {
+                MessageBox.Show("Ingrese un número entero en el campo precio.", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            if (precioDecimal <= 0)
+            {
+                MessageBox.Show("El precio debe ser mayor a cero.", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            Producto nuevoProducto = new Producto
+            {
+                Id = DatosCompartidos.Menu.Count + 1,
+                Nombre = nombre,
+                Categoria = categoria,
+                Precio = precioDecimal
+            };
+
+            DatosCompartidos.Menu.Add(nuevoProducto);
+            listaProductos.Add(nuevoProducto);
+            ActualizarGrid();
+
+            textBoxProducto.Clear();
+            textBoxCategoria.Clear();
+            textBoxPrecio.Clear();
+        }
+
+
+
+        private void buttonEliminarProducto_Click(object sender, EventArgs e)
+        {
+            if (dataGridViewMenu.SelectedRows.Count > 0)
+            {
+                DialogResult result = MessageBox.Show("¿Estás seguro que deseas eliminar este elemento?", "Confirmar Eliminación", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+                if (result == DialogResult.Yes)
+                {
+                    int filaSeleccionada = dataGridViewMenu.SelectedRows[0].Index;
+
+                    int idProducto = (int)dataGridViewMenu.SelectedRows[0].Cells[0].Value;
+
+                    Producto productoAEliminar = DatosCompartidos.Menu.FirstOrDefault(p => p.Id == idProducto);
+                    if (productoAEliminar != null)
+                    {
+                        DatosCompartidos.Menu.Remove(productoAEliminar);
+                        ActualizarGrid();
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show("Selecciona una fila para eliminar.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+
+        private void dataGridViewMenu_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            dataGridViewMenu.AutoGenerateColumns = true;
+            ActualizarGrid();
+            if (e.RowIndex >= 0)
+            {
+                DataGridViewRow fila = dataGridViewMenu.Rows[e.RowIndex];
+
+                textBoxProducto.Text = fila.Cells[1].Value.ToString();
+                textBoxCategoria.Text = fila.Cells[2].Value.ToString();
+                textBoxPrecio.Text = fila.Cells[3].Value.ToString();
+            }
+        }
+
+        private void buttonActualizarProducto_Click(object sender, EventArgs e)
+        {
+            if (dataGridViewMenu.SelectedRows.Count > 0)
+            {
+                DataGridViewRow fila = dataGridViewMenu.SelectedRows[0];
+
+                int idProducto = Convert.ToInt32(fila.Cells[0].Value);
+
+                string producto = textBoxProducto.Text.Trim();
+                string categoria = textBoxCategoria.Text.Trim();
+                string precio = textBoxPrecio.Text.Trim();
+
+                if (string.IsNullOrEmpty(producto) || string.IsNullOrEmpty(categoria) || string.IsNullOrEmpty(precio))
+                {
+                    MessageBox.Show("Complete todos los campos.", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                if (!decimal.TryParse(precio, out decimal precioDecimal))
+                {
+                    MessageBox.Show("Ingrese un número válido en el campo precio.", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                if (precioDecimal <= 0)
+                {
+                    MessageBox.Show("El precio debe ser mayor a cero.", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+                Producto productoActual = DatosCompartidos.Menu.FirstOrDefault(p => p.Id == idProducto);
+                if (productoActual != null)
+                {
+                    productoActual.Nombre = producto;
+                    productoActual.Categoria = categoria;
+                    productoActual.Precio = precioDecimal;
+
+                    ActualizarGrid();
+                    textBoxProducto.Clear();
+                    textBoxCategoria.Clear();
+                    textBoxPrecio.Clear();
+                }
+                else
+                {
+                    MessageBox.Show("No se encontró el producto para actualizar.");
+                }
+            }
+            else
+            {
+                MessageBox.Show("Selecciona una fila para actualizar.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+        private void button1Volver_Click(object sender, EventArgs e)
+        {
+            panelMenu.Visible = false;
+        }
+        private void MostrarMenuEnOrdenes()
+        {
+            dataGridViewMenuOrdenes.DataSource = null;
+            dataGridViewMenuOrdenes.AutoGenerateColumns = true;
+            dataGridViewMenuOrdenes.DataSource = DatosCompartidos.Menu;
+        }
+        private void ordenes_Click(object sender, EventArgs e)
+        {
+            panelOrdenes.Visible = true;
+            MostrarMenuEnOrdenes();
+        }
+        private void buttonBackOrdenes_Click(object sender, EventArgs e)
+        {
+            panelOrdenes.Visible = false;
+        }
+        private void dataGridViewMenuOrdenes_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex >= 0)
+            {
+                DataGridViewRow fila = dataGridViewMenuOrdenes.Rows[e.RowIndex];
+
+                string nombre = fila.Cells[1].Value.ToString();
+                string categoria = fila.Cells[2].Value.ToString();
+                string precio = fila.Cells[3].Value.ToString();
+
+                MessageBox.Show($"Producto seleccionado:\n{nombre} - {categoria} - ${precio}", "Orden", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+
+        private void buttonAggOrden_Click(object sender, EventArgs e)
+        {
+          if(dataGridViewMenuOrdenes.CurrentRow != null)
+            {
+                string nombre = dataGridViewMenuOrdenes.CurrentRow.Cells["Nombre"].Value.ToString();
+                decimal precio = Convert.ToDecimal(dataGridViewMenuOrdenes.CurrentRow.Cells["Precio"].Value);
+
+                string dibujo = "========================";
+                string item = $"{nombre} --- ${precio}";
+    
+                listBoxOrden.Items.Add(dibujo);
+                listBoxOrden.Items.Add(item);
+                listBoxOrden.Items.Add(dibujo);
+
+                total += precio;
+                labelTotalOrden.Text = $"Total: ${total:0}";
+            }
+
+
+
+        }
+    }
+}
